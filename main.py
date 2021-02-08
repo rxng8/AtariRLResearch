@@ -13,32 +13,12 @@ from tensorflow.keras import layers
 IMG_SHAPE = (105, 80)
 BATCH_SIZE = 32
 
+# Preprocess
+
 def show_img(data):
     plt.imshow(data)
     plt.axis("off")
     plt.show()
-
-
-# for i_episode in range(20):
-#     observation = env.reset()
-#     reward = 0
-#     for t in range(100):
-#         clear_output(wait=True)
-#         print("Game:", i_episode)
-#         # env.render()
-#         show_img(observation)
-#         print("Reward: ", reward)
-#         action = env.action_space.sample()
-#         observation, reward, done, info = env.step(action)
-#         if done:
-#             print("Episode finished after {} timesteps".format(t+1))
-#             break
-#         time.sleep(0.01)
-# env.close()
-
-# %%
-
-# Preprocess
 
 def resize(img: np.ndarray, shape=IMG_SHAPE) -> tf.Tensor:
     return tf.reshape(img, shape=shape)
@@ -84,15 +64,32 @@ def preprocess(img: np.ndarray) -> tf.Tensor:
     return ans
 
 # replay memory class
-class ReplayMemory():
-    def __init__(self):
-        pass
+class ReplayBuffer():
+    def __init__(self, action_space_size):
+        self.state_tensor = tf.zeros(shape=(0, *IMG_SHAPE, 1))
+        self.action_space_size = action_space_size
+        self.action_tensor = tf.zeros(shape=(0, action_space_size))
+        self.observation_tensor = tf.zeros(shape=(0, *IMG_SHAPE, 1))
+        self.terminal_tensor = tf.zeros(shape=(0, 1))
+        self.reward_tensor = tf.zeros(shape=(0, 1))
 
-    def add(self, state, action, observation, reward, terminal):
-        pass
+    def add(self, state, action, reward, observation, terminal):
+        self.state_tensor = tf.concat([self.state_tensor, [state]], axis=0)
+        self.action_tensor = tf.concat([self.action_tensor, [action]], axis=0)
+        self.observation_tensor = tf.concat([self.observation_tensor, [observation]], axis=0)
+        self.terminal_tensor = tf.concat([self.terminal_tensor, [terminal]], axis=0)
+        self.reward_tensor = tf.concat([self.reward_tensor, [reward]], axis=0)
 
     def batch(self, batch_size=32):
-        pass
+        dataset = tf.data.Dataset.from_tensor_slices((
+            self.state_tensor,
+            self.action_tensor,
+            self.reward_tensor,
+            self.observation_tensor,
+            self.terminal_tensor
+        ))
+        batch_dataset = dataset.batch(batch_size)
+        return batch_dataset
 
 # Computation
 
@@ -155,7 +152,7 @@ def q_step(env,
         model, 
         state: np.ndarray, 
         iteration: int, 
-        memory, 
+        memory: ReplayBuffer, 
         batch_size :int=32):
 
     # use the iteration to compute 
@@ -171,7 +168,7 @@ def q_step(env,
     observation, reward, terminal, info = env.step(action)
 
     # Add to the replay memory
-    memory.add(state, action, observation, reward, terminal)
+    memory.add(state, action, reward, observation, terminal)
 
     # Create batch
     batch = memory.batch(batch_size)
@@ -181,11 +178,38 @@ def q_step(env,
 
 # %%
 
-# env = gym.make('BreakoutDeterministic-v4')
+# Test game
 env = atari_env()
+
+for i_episode in range(20):
+    observation = env.reset()
+    reward = 0
+    for t in range(100):
+        clear_output(wait=True)
+        print("Game:", i_episode)
+        # env.render()
+        show_img(observation)
+        print("Reward: ", reward)
+        action = env.action_space.sample()
+        observation, reward, done, info = env.step(action)
+        if done:
+            print("Episode finished after {} timesteps".format(t+1))
+            break
+        time.sleep(0.01)
+env.close()
+
+# %%
+
+
+
 
 
 # %%
+
+env = atari_env()
+
+# %%
+
 model = atari_model(env.action_space.n, (*IMG_SHAPE, 1))
 
 # %%
