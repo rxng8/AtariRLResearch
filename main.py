@@ -10,86 +10,12 @@ import random
 
 from tensorflow.keras import layers
 
+from core.memory import ReplayBuffer
+from core.utils import *
+
 IMG_SHAPE = (105, 80)
 BATCH_SIZE = 32
 
-# Preprocess
-
-def show_img(data):
-    plt.imshow(data)
-    plt.axis("off")
-    plt.show()
-
-def resize(img: np.ndarray, shape=IMG_SHAPE) -> tf.Tensor:
-    return tf.reshape(img, shape=shape)
-
-def down_sample(img: np.ndarray) -> np.ndarray:
-    return img[::2, ::2]
-
-def RGB2Gray(img: np.ndarray) -> tf.Tensor:
-    return tf.reduce_mean(img, axis=2)
-
-def rescale(img: np.ndarray, range='sigmoid') -> np.ndarray:
-    if range == 'sigmoid':
-        return img / 255.0
-    elif range == 'tanh':
-        return ((img / 255.0) - 0.5) * 2
-    else:
-        print("Please use 'sigmoid' or 'tanh' range type!")
-
-def deprocess(img: tf.Tensor, resize=None) -> tf.Tensor:
-    ans = img.copy()
-    
-    if resize:
-        ans = tf.resize(ans, shape=resize)
-    
-    mn = tf.reduce_min(img)
-    mx = tf.reduce_max(img)
-    
-    # tanh range
-    if mn < 0:
-        ans = (ans / 2 + 0.5 ) * 255.0
-        ans = tf.cast(ans, dtype=tf.uint8)
-    # sigmoid range
-    elif mx <= 1:
-        ans = ans * 255.0
-        ans = tf.cast(ans, dtype=tf.uint8)
-
-    return ans
-
-def preprocess(img: np.ndarray) -> tf.Tensor:
-    ans = RGB2Gray(img)
-    ans = resize(ans)
-    ans = rescale(ans)
-    return ans
-
-# replay memory class
-class ReplayBuffer():
-    def __init__(self, action_space_size):
-        self.state_tensor = tf.zeros(shape=(0, *IMG_SHAPE, 1))
-        self.action_space_size = action_space_size
-        self.action_tensor = tf.zeros(shape=(0, action_space_size))
-        self.observation_tensor = tf.zeros(shape=(0, *IMG_SHAPE, 1))
-        self.terminal_tensor = tf.zeros(shape=(0, 1))
-        self.reward_tensor = tf.zeros(shape=(0, 1))
-
-    def add(self, state, action, reward, observation, terminal):
-        self.state_tensor = tf.concat([self.state_tensor, [state]], axis=0)
-        self.action_tensor = tf.concat([self.action_tensor, [action]], axis=0)
-        self.observation_tensor = tf.concat([self.observation_tensor, [observation]], axis=0)
-        self.terminal_tensor = tf.concat([self.terminal_tensor, [terminal]], axis=0)
-        self.reward_tensor = tf.concat([self.reward_tensor, [reward]], axis=0)
-
-    def batch(self, batch_size=32):
-        dataset = tf.data.Dataset.from_tensor_slices((
-            self.state_tensor,
-            self.action_tensor,
-            self.reward_tensor,
-            self.observation_tensor,
-            self.terminal_tensor
-        ))
-        batch_dataset = dataset.batch(batch_size)
-        return batch_dataset
 
 # Computation
 
@@ -98,7 +24,7 @@ def compute_epsilon(iteration: int) -> float:
     return 0.1
 
 def choose_best_action(model, state) -> int:
-    
+    model
     return 0
 
 def fit_batch(model, batch):
