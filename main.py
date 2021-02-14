@@ -10,10 +10,10 @@ import random
 
 from tensorflow.keras import layers
 
-from core.memory import ReplayBuffer
 from core.data import *
-from core.agent import *
-from core.models import *
+from core.agent import DQNAgent
+from core.models import atari_model
+
 
 IMG_SHAPE = (105, 80)
 BATCH_SIZE = 32
@@ -22,25 +22,12 @@ BATCH_SIZE = 32
 def atari_env(env_name='BreakoutDeterministic-v4'):
     return gym.make(env_name)
 
-
-def compute_epsilon(iteration: int) -> float:
-    # Hard code!
-    return 0.1
-
-def choose_best_action(model, state) -> int:
-    model
-    return 0
-
-def fit_batch(agnet, batch):
-    pass
-
+env = atari_env()
 
 
 # %%
 
 # Test game
-env = atari_env()
-
 for i_episode in range(20):
     observation = env.reset()
     reward = 0
@@ -59,6 +46,9 @@ for i_episode in range(20):
 env.close()
 
 # %%
+
+
+
 
 
 

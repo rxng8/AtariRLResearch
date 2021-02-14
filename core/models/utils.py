@@ -26,3 +26,6 @@ def down_sample_layer(out_channels):
         max_pooling_layer(),
         dropout_layer()
     ])
+
+def mse(y_true, y_pred):
+    return tf.keras.losses.mean_squared_error(y_true, y_pred)
