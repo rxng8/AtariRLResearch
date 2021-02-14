@@ -24,26 +24,27 @@ class DQNAgent(BaseAgent):
         self.optimizer = tf.keras.optimizers.Adam()
 
     def best_action(self, model, state) -> int:
-        q_vector = model([state])[0]
+        q_vector = model([state], training=False)[0]
         return tf.argmax(q_vector)
 
     def fit_batch(self, model, batch, discount_rate: float=0.97):
-        (states, actions, rewards, new_states, terminals), \
+        (states, action, reward, new_states, terminal), \
             importance, indices = batch
-
+        batch_size = states.shape[0]
         with tf.device('/device:GPU:0'):
             # Open a GradientTape to record the operations run
             # during the forward pass, which enables auto-differentiation.
             with tf.GradientTape() as tape:
 
-                pred_q_vec = model(states, training=True)  # Logits for this minibatch
-                pred_q_value = pred_q_vec[actions]
+                pred_q_values = model(states, training=True)  # Logits for this minibatch
+                one_hot_actions = tf.keras.utils.to_categorical(action, self.action_size, dtype=np.float32)
+                Q = tf.reduce_sum(tf.multiply(pred_q_values, one_hot_actions), axis=1)
 
                 # Compute the loss value for this minibatch.
-                true_q_value = rewards
-                if not terminals:
-                    true_q_value += discount_rate * model(new_states, training=False)
-                loss = mse(true_q_value, pred_q_value)
+                true_q_values = tf.broadcast_to(reward, shape=(batch_size))
+                if not terminal:
+                    true_q_values += discount_rate * tf.reduce_max(model(new_states, training=False), axis=1)
+                loss = mse(true_q_values, Q)
 
                 # print(f"loss for this batch at step: {step + 1}: {loss }")
 
