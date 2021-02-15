@@ -17,7 +17,10 @@ def show_img(data):
     plt.show()
 
 def resize(img: np.ndarray, shape=IMG_SHAPE) -> tf.Tensor:
-    return tf.reshape(img, shape=shape)
+    return tf.image.resize(
+        img, shape, method=tf.image.ResizeMethod.BILINEAR, preserve_aspect_ratio=False,
+        antialias=False, name=None
+    )
 
 def down_sample(img: np.ndarray) -> np.ndarray:
     return img[::2, ::2]
@@ -55,6 +58,8 @@ def deprocess(img: tf.Tensor, resize=None) -> tf.Tensor:
 
 def preprocess(img: np.ndarray) -> tf.Tensor:
     ans = RGB2Gray(img)
+    if len(ans.shape) == 2:
+        ans = tf.expand_dims(ans, axis=-1)
     ans = resize(ans)
     ans = rescale(ans)
     return ans

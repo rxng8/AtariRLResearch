@@ -1,5 +1,6 @@
 
 
+from core.data.utils import preprocess
 from core.models.utils import mse
 from tensorflow.python.keras.engine import training
 from core import models
@@ -24,13 +25,15 @@ class DQNAgent(BaseAgent):
         self.optimizer = tf.keras.optimizers.Adam()
 
     def best_action(self, model, state) -> int:
-        q_vector = model([state], training=False)[0]
+        q_vector = model(tf.expand_dims(preprocess(state), axis=0), training=False)[0]
         return tf.argmax(q_vector)
 
     def fit_batch(self, model, batch, discount_rate: float=0.97):
         (states, action, reward, new_states, terminal), \
             importance, indices = batch
         batch_size = states.shape[0]
+        states = tf.expand_dims(states, axis=-1)
+        new_states = tf.expand_dims(new_states, axis=-1)
         with tf.device('/device:GPU:0'):
             # Open a GradientTape to record the operations run
             # during the forward pass, which enables auto-differentiation.
@@ -72,29 +75,31 @@ class DQNAgent(BaseAgent):
         if random.random() < epsilon:
             action = env.action_space.sample()
         else:
-            action = self.best_action(state)
+            action = self.best_action(model, state)
 
         # Step in the environment
         observation, reward, terminal, info = env.step(action)
-
+        observation = preprocess(observation)
+        print(state.shape)
         # Add to the replay memory
         memory.add_experience(action, state, reward, terminal)
 
-        # Create batch
-        # (A tuple of states, actions, rewards, new_states, and terminals),
-        # importance, indices.
-        batch = memory.get_minibatch(batch_size)
+        if iteration > batch_size:
+            # Create batch
+            # (A tuple of states, actions, rewards, new_states, and terminals),
+            # importance, indices.
+            batch = memory.get_minibatch(batch_size)
 
-        # Train batch
-        self.fit_batch(model, batch)
+            # Train batch
+            self.fit_batch(model, batch)
 
         return observation, terminal
 
     def train(self, env, epochs: int=1, steps: int=200):
-        memory = ReplayBuffer(input_shape=IMG_SHAPE)
-        model = atari_model(action_size=self.action_size, input_shape=IMG_SHAPE)
+        memory = ReplayBuffer(input_shape=(*IMG_SHAPE, 1))
+        model = atari_model(action_size=self.action_size, input_shape=(*IMG_SHAPE, 1))
         for epoch in range(epochs):
-            observation = env.reset()
+            observation = preprocess(env.reset())
             terminal = False
             reward = 0
             for step in range(steps):

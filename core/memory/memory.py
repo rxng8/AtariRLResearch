@@ -70,7 +70,7 @@ class ReplayBuffer:
         # Pre-allocate memory
         self.actions = np.empty(self.size, dtype=np.int32)
         self.rewards = np.empty(self.size, dtype=np.float32)
-        self.frames = np.empty((self.size, self.input_shape[0], self.input_shape[1]), dtype=np.uint8)
+        self.frames = np.empty((self.size, self.input_shape[0], self.input_shape[1], self.input_shape[2]), dtype=np.uint8)
         self.terminal_flags = np.empty(self.size, dtype=np.bool)
         self.priorities = np.zeros(self.size, dtype=np.float32)
 
@@ -85,6 +85,8 @@ class ReplayBuffer:
             reward: A float determining the reward the agend received for performing an action
             terminal: A bool stating whether the episode terminated
         """
+        # print(frame.shape)
+        # print(self.input_shape)
         if frame.shape != self.input_shape:
             raise ValueError('Dimension of frame is wrong!')
 
