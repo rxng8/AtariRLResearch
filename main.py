@@ -24,7 +24,8 @@ def eps_function(step):
 def atari_env(env_name='BreakoutDeterministic-v4'):
     return gym.make(env_name)
 
-env = atari_env()
+env = atari_env(env_name='BreakoutNoFrameskip-v4')
+
 
 
 # %%
@@ -51,9 +52,19 @@ env = atari_env()
 # Train
 agent = DQNAgent(env.action_space.n, eps_function)
 
-agent.train(env)
+agent.train(env, epochs=1)
 
 
 
 
 # %%
+
+agent.play(env)
+
+
+# %%
+
+
+a = np.empty(shape=(2,0))
+b = tf.ones(shape=(2,1))
+tf.concat([a, b], axis=1)

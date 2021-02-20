@@ -147,8 +147,12 @@ class ReplayBuffer:
             states.append(self.frames[idx-self.history_length:idx, ...])
             new_states.append(self.frames[idx-self.history_length+1:idx+1, ...])
 
-        states = np.transpose(np.asarray(states), axes=(0, 2, 3, 1))
-        new_states = np.transpose(np.asarray(new_states), axes=(0, 2, 3, 1))
+        states = tf.squeeze(np.asarray(states), axis=-1)
+        states = np.transpose(states, axes=(0, 2, 3, 1))
+        # print(states.shape)
+
+        new_states = tf.squeeze(np.asarray(new_states), axis=-1)
+        new_states = np.transpose(new_states, axes=(0, 2, 3, 1))
 
         if self.use_per:
             # Get importance weights from probabilities calculated earlier
