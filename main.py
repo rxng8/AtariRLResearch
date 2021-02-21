@@ -1,5 +1,6 @@
 # %%
 
+from PIL.Image import new
 import gym
 import time
 from IPython.display import clear_output
@@ -13,20 +14,21 @@ from tensorflow.keras import layers
 from core.data import *
 from core.agent import DQNAgent
 from core.models import atari_model
-
+from core.memory import ReplayBuffer
 
 IMG_SHAPE = (105, 80)
 BATCH_SIZE = 32
 
 def eps_function(step):
-    return 0.1
+    return 0.05
 
 def atari_env(env_name='BreakoutDeterministic-v4'):
     return gym.make(env_name)
 
-env = atari_env(env_name='BreakoutNoFrameskip-v4')
+# env = atari_env(env_name='BreakoutNoFrameskip-v4')
 
-
+env = atari_env()
+agent = DQNAgent(env.action_space.n, eps_function)
 
 # %%
 
@@ -50,9 +52,9 @@ env = atari_env(env_name='BreakoutNoFrameskip-v4')
 
 
 # Train
-agent = DQNAgent(env.action_space.n, eps_function)
 
-agent.train(env, epochs=1)
+
+memory = agent.train(env, epochs=10, steps=1000)
 
 
 
@@ -68,3 +70,29 @@ agent.play(env)
 a = np.empty(shape=(2,0))
 b = tf.ones(shape=(2,1))
 tf.concat([a, b], axis=1)
+
+
+# %%
+
+batch = memory.get_minibatch()
+(states, action, reward, new_states, terminal), \
+            importance, indices = batch
+
+# %%
+
+show_img(states[7])
+show_img(new_states[7])
+
+
+# %%
+
+states.shape
+
+# %%
+import numpy as np
+import tensorflow as tf
+b = np.empty((3,4))
+print(b)
+b[0,...] = [4,5,38,544,3]
+print(b)
+del b

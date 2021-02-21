@@ -57,9 +57,11 @@ def deprocess(img: tf.Tensor, resize=None) -> tf.Tensor:
     return ans
 
 def preprocess(img: np.ndarray) -> tf.Tensor:
-    ans = RGB2Gray(img)
+    ans = img
+    if len(ans.shape) == 3:
+        ans = RGB2Gray(img)
     if len(ans.shape) == 2:
         ans = tf.expand_dims(ans, axis=-1)
     ans = resize(ans)
-    ans = rescale(ans)
+    # ans = rescale(ans)
     return ans

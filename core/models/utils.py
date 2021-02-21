@@ -29,3 +29,6 @@ def down_sample_layer(out_channels):
 
 def mse(y_true, y_pred):
     return tf.keras.losses.mean_squared_error(y_true, y_pred)
+
+def huber(y_true, y_pred):
+    return tf.keras.losses.Huber()(y_true, y_pred)

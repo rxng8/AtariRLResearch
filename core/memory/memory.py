@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 import random
-
+import os
+from core.data import show_img
 from tensorflow.keras import layers
 
 IMG_SHAPE = (105, 80)
@@ -43,11 +44,16 @@ class MyReplayBuffer:
 
 
 
-import os
-import random
 
-import numpy as np
+class BaseReplyBuffer():
+    def __init__(self) -> None:
+        pass
 
+    def get_minibatch(self):
+        pass
+
+    def add_experience(self):
+        pass
 
 class ReplayBuffer:
     """Replay Buffer to store transitions.
@@ -70,7 +76,8 @@ class ReplayBuffer:
         # Pre-allocate memory
         self.actions = np.empty(self.size, dtype=np.int32)
         self.rewards = np.empty(self.size, dtype=np.float32)
-        self.frames = np.empty((self.size, self.input_shape[0], self.input_shape[1], self.input_shape[2]), dtype=np.uint8)
+        self.frames = np.empty((self.size, *self.input_shape), dtype=np.uint8)
+        # self.frames = np.empty((self.size, *self.input_shape), dtype=np.float32)
         self.terminal_flags = np.empty(self.size, dtype=np.bool)
         self.priorities = np.zeros(self.size, dtype=np.float32)
 
@@ -95,7 +102,12 @@ class ReplayBuffer:
 
         # Write memory
         self.actions[self.current] = action
-        self.frames[self.current, ...] = frame
+        # print(self.actions[self.current])
+        # show_img(frame)
+        self.frames[self.current,...] = frame
+        # print(self.frames.shape)
+        # print(f"current id: {self.current}")
+        # show_img(self.frames[self.current])
         self.rewards[self.current] = reward
         self.terminal_flags[self.current] = terminal
         self.priorities[self.current] = max(self.priorities.max(), 1)  # make the most recent experience important
@@ -147,11 +159,11 @@ class ReplayBuffer:
             states.append(self.frames[idx-self.history_length:idx, ...])
             new_states.append(self.frames[idx-self.history_length+1:idx+1, ...])
 
-        states = tf.squeeze(np.asarray(states), axis=-1)
+        # states = tf.squeeze(np.asarray(states), axis=-1)
         states = np.transpose(states, axes=(0, 2, 3, 1))
         # print(states.shape)
-
-        new_states = tf.squeeze(np.asarray(new_states), axis=-1)
+        # show_img(states[0,...])
+        # new_states = tf.squeeze(np.asarray(new_states), axis=-1)
         new_states = np.transpose(new_states, axes=(0, 2, 3, 1))
 
         if self.use_per:
@@ -189,3 +201,8 @@ class ReplayBuffer:
         self.frames = np.load(folder_name + '/frames.npy')
         self.rewards = np.load(folder_name + '/rewards.npy')
         self.terminal_flags = np.load(folder_name + '/terminal_flags.npy')
+
+
+class MyReplayBuffer2(BaseReplyBuffer):
+    def __init__(self) -> None:
+        pass
