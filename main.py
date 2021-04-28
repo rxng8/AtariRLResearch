@@ -20,7 +20,7 @@ IMG_SHAPE = (105, 80)
 BATCH_SIZE = 32
 
 def eps_function(step):
-    return 0.05
+    return 0.2
 
 def atari_env(env_name='BreakoutDeterministic-v4'):
     return gym.make(env_name)
@@ -53,46 +53,10 @@ agent = DQNAgent(env.action_space.n, eps_function)
 
 # Train
 
-
-memory = agent.train(env, epochs=10, steps=1000)
-
-
+memory = agent.train(env, epochs=30, steps=1000)
 
 
 # %%
 
-agent.play(env)
+memory = agent.train(env, epochs=1, steps=1000, render=True)
 
-
-# %%
-
-
-a = np.empty(shape=(2,0))
-b = tf.ones(shape=(2,1))
-tf.concat([a, b], axis=1)
-
-
-# %%
-
-batch = memory.get_minibatch()
-(states, action, reward, new_states, terminal), \
-            importance, indices = batch
-
-# %%
-
-show_img(states[7])
-show_img(new_states[7])
-
-
-# %%
-
-states.shape
-
-# %%
-import numpy as np
-import tensorflow as tf
-b = np.empty((3,4))
-print(b)
-b[0,...] = [4,5,38,544,3]
-print(b)
-del b

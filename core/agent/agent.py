@@ -36,6 +36,7 @@ class DQNAgent(BaseAgent):
     def fit_batch(self, model, batch, discount_rate: float=0.97):
         (states, action, reward, new_states, terminal), \
             importance, indices = batch
+        
         batch_size = states.shape[0]
         # states = tf.expand_dims(states, axis=-1)
         # new_states = tf.expand_dims(new_states, axis=-1)
